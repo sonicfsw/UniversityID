@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UID Booking{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .content {
+            flex: 1;
+        }
+        .navbar-bottom {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #3c388d;  /* Цвет фона */
+            border-top: 1px solid #e7e7e7;
+            box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-bottom a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            color: #ffffff;  /* Цвет текста */
+            text-align: center;
+            text-decoration: none;
+        }
+        .navbar-bottom a .fa {
+            font-size: 30px;  /* Размер иконок */
+            margin-bottom: 5px;
+        }
+        .navbar-bottom .booking-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .navbar-bottom .booking {
+            position: absolute;
+            top: -30px;  /* Сдвиг кнопки вверх */
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;  /* Анимация при наведении */
+        }
+        .navbar-bottom .booking:hover {
+            background-color: #0056b3;  /* Цвет фона при наведении */
+        }
+        .navbar-bottom .booking-text {
+            margin-top: 35px; /* Отступ для текста под кнопкой */
+            text-align: center;
+            font-size: 16px; /* Размер текста */
+            color: #ffffff;  /* Цвет текста */
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+    <div class="navbar-bottom">
+        <div class="container">
+            <div class="row">
+                <div class="col"><a href="/login"><i class="fas fa-sign-in-alt"></i><span>Войти</span></a></div>
+                <div class="col"><a href="/bookings"><i class="fas fa-list"></i><span>Мои бронирования</span></a></div>
+                <div class="col booking-container">
+                    <a href="/book" class="booking"><i class="fas fa-plus"></i></a>
+                    <div class="booking-text">Забронировать</div>
+                </div>
+                <div class="col"><a href="/about"><i class="fas fa-info-circle"></i><span>About</span></a></div>
+                <div class="col"><a href="/contact"><i class="fas fa-envelope"></i><span>Contact</span></a></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
