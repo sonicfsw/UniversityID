@@ -10,3 +10,4 @@ def save_schedule(group, schedule):
 
 def get_schedule(group):
     return collection.find_one({'group': group})
+#let'go

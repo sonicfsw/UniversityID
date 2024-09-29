@@ -6,3 +6,4 @@ START_HOUR = 8
 END_HOUR = 20
 UPDATE_INTERVAL = 45  # minutes
 TIMEZONE_OFFSET = 4  # MSK+4
+#let'go
