@@ -1,24 +1,26 @@
-from flask import Flask, render_template, request, jsonify
-from app.models import db
+from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import text
+import os
 
 app = Flask(__name__)
 
 # Конфигурация базы данных
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    'mssql+pyodbc://sonicfsw:123456789@192.168.0.107:1433/reservation+navigation'
+    'mssql+pyodbc://sa2:UID2425@192.168.0.101:1433/reservation+navigation'
     '?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Инициализация базы данных
-db.init_app(app)
+db = SQLAlchemy(app)
 
 # Главная страница
 @app.route('/')
 def home():
     return render_template('home.html')
 
-# О проекте
+# О странице
 @app.route('/about')
 def about():
     return render_template('about.html')
@@ -33,36 +35,35 @@ def contact():
 def login():
     return render_template('login.html')
 
-# Все бронирования через вьюху
+# Все бронирования
 @app.route('/bookings')
 def bookings():
-    result = db.session.execute("SELECT * FROM BookingInfoView").fetchall()
-    return render_template('bookings.html', bookings=[dict(row) for row in result])
+    try:
+        # Выполняем запрос к вьюхе
+        result = db.session.execute(text("SELECT * FROM BookingInfoView"))
+
+        # Получаем метаданные (имена колонок)
+        column_names = result.keys()
+        rows = result.fetchall()
+
+        # Преобразуем строки в список словарей
+        bookings = [{column: value for column, value in zip(column_names, row)} for row in rows]
+
+        # Передаем данные в шаблон
+        return render_template('bookings.html', bookings=bookings)
+    except Exception as e:
+        print(f"Ошибка при загрузке данных: {e}")
+        return render_template('error.html', message="Ошибка загрузки данных из вьюхи.")
 
 # Форма бронирования
-@app.route('/book', methods=['GET', 'POST'])
+@app.route('/book')
 def book():
-    if request.method == 'POST':
-        data = request.form
-        # Вызов хранимой процедуры для создания бронирования
-        db.session.execute(
-            "EXEC CreateReservation :User_ID, :ReservationGoal, :FreeTime_ID, :Auditorium_ID, :AuditoriumType_ID",
-            {
-                'User_ID': data['User_ID'],
-                'ReservationGoal': data['ReservationGoal'],
-                'FreeTime_ID': data['FreeTime_ID'],
-                'Auditorium_ID': data['Auditorium_ID'],
-                'AuditoriumType_ID': data['AuditoriumType_ID']
-            }
-        )
-        db.session.commit()
-        return jsonify({'message': 'Бронирование успешно создано'})
     return render_template('book.html')
 
-# Карта IT-академии (интерактивное SVG)
+# IT-академия или карта
 @app.route('/it-academy')
 def it_academy():
     return render_template('output.html')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=5000)
