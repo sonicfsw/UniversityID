@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}My Bookings{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>My Bookings Page</h1>
+    <p>View your bookings below.</p>
+
+    {% if bookings %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Group Number</th>
+                    <th>Building Name</th>
+                    <th>Auditorium Number</th>
+                    <th>Pair Number</th>
+                    <th>Reservation Goal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                    <tr>
+                        <td>{{ booking['User_ID'] }}</td>
+                        <td>{{ booking['First_name'] }}</td>
+                        <td>{{ booking['Last_name'] }}</td>
+                        <td>{{ booking['GroupNumber'] }}</td>
+                        <td>{{ booking['BuildingName'] }}</td>
+                        <td>{{ booking['AuditoriumNumber'] }}</td>
+                        <td>{{ booking['PairNumber'] }}</td>
+                        <td>{{ booking['ReservationGoal'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No bookings found.</p>
+    {% endif %}
+</div>
+{% endblock %}

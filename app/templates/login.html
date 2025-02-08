@@ -1,8 +1,29 @@
 {% extends "base.html" %}
+
 {% block title %}Login{% endblock %}
+
 {% block content %}
 <div class="container">
     <h1>Login Page</h1>
     <p>Login to your account.</p>
+
+    <form method="POST" action="{{ url_for('login') }}">
+        {{ form.hidden_tag() }} <!-- Эта строка генерирует CSRF токен -->
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            {{ form.email(class="form-control", id="email") }}
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            {{ form.password(class="form-control", id="password") }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+
+    <!-- Ссылка на страницу регистрации -->
+    <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
 </div>
 {% endblock %}
