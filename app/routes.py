@@ -15,7 +15,7 @@ app.config['SECRET_KEY'] = 'your_secret_key_here'
 csrf = CSRFProtect(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    'mssql+pyodbc://sonicfsw:123456789@192.168.0.105:1433/reservation+navigation'
+    'mssql+pyodbc://sonicfsw:123456789@192.168.0.22:1433/reservation+navigation'
     '?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
