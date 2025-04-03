@@ -8,14 +8,15 @@
     {% if bookings %}
         <table class="table table-striped">
             <thead>
-                <tr>
+<tr>
                     <th>User ID</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
+                    <th>Имя</th>
+                    <th>Фамилия</th>
                     <th>Group Number</th>
                     <th>Building Name</th>
                     <th>Auditorium Number</th>
-                    <th>Pair Number</th>
+                    <th>Pair ID</th>
+                    <th>Time Period</th>
                     <th>Reservation Goal</th>
                 </tr>
             </thead>
@@ -28,7 +29,8 @@
                         <td>{{ booking['GroupNumber'] }}</td>
                         <td>{{ booking['BuildingName'] }}</td>
                         <td>{{ booking['AuditoriumNumber'] }}</td>
-                        <td>{{ booking['PairNumber'] }}</td>
+                        <td>{{ booking['Pair_ID'] }}</td>
+                        <td>{{ booking['TimePeriod'] }}</td>
                         <td>{{ booking['ReservationGoal'] }}</td>
                     </tr>
                 {% endfor %}

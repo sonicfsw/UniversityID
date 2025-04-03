@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive SVG</title>
+  <style>
+    .highlighted {
+      fill: yellow;
+    }
+    .cls-1 {
+      fill: #C9C8C8;
+      stroke: #000;
+      stroke-miterlimit: 10;
+    }
+    .cls-2 {
+      font-size: 24px;
+      fill: #000;
+      text-anchor: middle;
+      font-weight: bold;
+      dominant-baseline: middle;
+    }
+    #bookingForm {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <svg id="mySvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <g id="1" class="cls-1" onmouseover="handleMouseOver('1')" onmouseout="handleMouseOut('1')" onclick="handleClick('1')">
+      <rect x="10" y="10" width="30" height="30"/>
+      <text x="25" y="25" class="cls-2">1</text>
+    </g>
+  </svg>
+
+  <div id="bookingForm">
+    <h2>Booking Form</h2>
+    <form>
+      <input type="hidden" id="selectedArea" name="selectedArea">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name"><br><br>
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email"><br><br>
+      <input type="submit" value="Submit">
+    </form>
+  </div>
+
+  <script>
+    function handleMouseOver(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.classList.add('highlighted');
+      }
+    }
+    function handleMouseOut(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('highlighted');
+      }
+    }
+    function handleClick(id) {
+      var form = document.getElementById('bookingForm');
+      form.style.display = 'block';
+      var input = document.getElementById('selectedArea');
+      input.value = id;
+    }
+  </script>
+</body>
+</html>

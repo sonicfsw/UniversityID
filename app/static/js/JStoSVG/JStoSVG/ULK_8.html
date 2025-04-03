@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive SVG</title>
+  <style>
+    #bookingForm {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <?xml version="1.0" encoding="utf-8"?>
+<svg height="auto" viewBox="0 0 1018 907" width="auto"><style>
+    .highlighted {
+      fill: yellow;
+    }
+    .cls-1 {
+      fill: #C9C8C8;
+      stroke: #000;
+      stroke-miterlimit: 10;
+    }
+    .cls-2 {
+      font-size: 24px;
+      fill: #000;
+      text-anchor: middle;
+      font-weight: bold;
+      dominant-baseline: middle;
+    }
+    </style>
+<g id="Audit">
+<g>//801
+          id="801"
+          className={hoveredId === "801" ? "cls-801 highlighted" : "cls-801"}
+          onMouseOver={() =&gt; handleMouseOver("801")}
+          onMouseOut={handleMouseOut}
+          onClick={() =&gt; handleClick("801")}
+        &gt;
+          <path class="cls-1" d="M270.3,745.9h-78.8c-2.8,0-5,2.2-5,5v85.4c0,2.8,2.2,5,5,5h78.8c2.8,0,5-2.2,5-5v-85.4C275.3,748.1,273.1,745.9,270.3,745.9z"/>
+<text class="cls-2" transform="matrix(1 0 0 1 214.0561 800.0114)">
+            801
+          </text>
+</g>
+<g>//802
+          id="802"
+          className={hoveredId === "802" ? "cls-802 highlighted" : "cls-802"}
+          onMouseOver={() =&gt; handleMouseOver("802")}
+          onMouseOut={handleMouseOut}
+          onClick={() =&gt; handleClick("802")}
+        &gt;
+          <path class="cls-1" d="M343.8,580.9H195.4c-2.8,0-5,2.2-5,5V669c0,2.8,2.2,5,5,5h148.4c2.8,0,5-2.2,5-5v-83.2C348.8,583.1,346.6,580.9,343.8,580.9z"/>
+<text class="cls-2" transform="matrix(1 0 0 1 213.5 633.3501)">
+            802
+          </text>
+</g></g></svg><script>
+    function handleMouseOver(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.classList.add('highlighted');
+      }
+    }
+    function handleMouseOut(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('highlighted');
+      }
+    }
+    function handleClick(id) {
+      var form = document.getElementById('bookingForm');
+      form.style.display = 'block';
+      var input = document.getElementById('selectedArea');
+      input.value = id;
+    }
+    </script>
+  <div id="bookingForm">
+    <h2>Booking Form</h2>
+    <form>
+      <input type="hidden" id="selectedArea" name="selectedArea">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name"><br><br>
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email"><br><br>
+      <input type="submit" value="Submit">
+    </form>
+  </div>
+</body>
+</html>
