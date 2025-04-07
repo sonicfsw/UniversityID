@@ -2,19 +2,31 @@ import re
 import os
 from bs4 import BeautifulSoup
 
-def extract_svg_from_js(js_content):
+def extract_svgs_from_js(js_content):
+    """
+    Ищет во всём тексте ВСЕ <svg ...> ... </svg>.
+    Возвращает список строк, каждая строка — это один блок <svg> ... </svg>.
+    Если ничего не найдено, выбрасывает ValueError.
+    """
     svg_pattern = re.compile(r'<svg.*?>.*?</svg>', re.DOTALL)
-    match = svg_pattern.search(js_content)
-    if match:
-        return match.group(0)
-    else:
+    matches = svg_pattern.findall(js_content)
+    if not matches:
         raise ValueError("SVG content not found in the provided JS file.")
+    return matches
 
 def add_interactivity_to_svg(svg_content):
+    """
+    Добавляет стили, классы и обработчики событий внутрь тега <svg>.
+    Возвращает готовый текст <svg>...</svg> со встроенным <script>.
+    """
     soup = BeautifulSoup(svg_content, 'lxml-xml')
+    svg_tag = soup.find('svg')
+    if not svg_tag:
+        raise ValueError("No <svg> root element found.")
 
-    style = soup.new_tag('style')
-    style.string = """
+    # Вставляем стили в начало <svg>
+    style_tag = soup.new_tag('style')
+    style_tag.string = """
     .highlighted {
       fill: yellow;
     }
@@ -31,34 +43,40 @@ def add_interactivity_to_svg(svg_content):
       dominant-baseline: middle;
     }
     """
-    if soup.svg:
-        soup.svg.insert(0, style)
-    else:
-        raise ValueError("No <svg> root element found.")
+    svg_tag.insert(0, style_tag)
 
+    # Ищем все <g>, вешаем обработчики
     for g in soup.find_all('g'):
         class_list = g.get('class', [])
         if isinstance(class_list, str):
             class_list = class_list.split()
         class_str = ' '.join(class_list)
 
+        # Пример: если класс "cls-1", то считаем, что это зона "1"
         cls_match = re.match(r'cls-(\d+)', class_str)
         if cls_match:
             cls_id = cls_match.group(1)
             g['id'] = cls_id
             g['class'] = f'cls-{cls_id}'
 
+            # Ставим onmouseover / onmouseout / onclick
             g['onmouseover'] = f"handleMouseOver('{cls_id}')"
             g['onmouseout'] = f"handleMouseOut('{cls_id}')"
             g['onclick'] = f"handleClick('{cls_id}')"
 
+            # Проставляем класс 'cls-1' на path и 'cls-2' на text,
+            # чтобы использовать стили по умолчанию
             for path in g.find_all('path'):
                 path['class'] = 'cls-1'
             for text_tag in g.find_all('text'):
                 text_tag['class'] = 'cls-2'
 
-    script = soup.new_tag('script')
-    script.string = """
+    # Добавляем <script> внутри svg
+    script_tag = soup.new_tag('script')
+    script_tag.attrs['type'] = 'text/ecmascript'
+    # Используем CDATA, чтобы парсер не ломался на символах < > в скрипте
+    script_tag.string = """
+    <![CDATA[
     function handleMouseOver(id) {
       var el = document.getElementById(id);
       if (el) {
@@ -72,62 +90,29 @@ def add_interactivity_to_svg(svg_content):
       }
     }
     function handleClick(id) {
-      var form = document.getElementById('bookingForm');
-      form.style.display = 'block';
-      var input = document.getElementById('selectedArea');
-      input.value = id;
+      alert("Clicked on area: " + id);
     }
+    ]]>
     """
-    if soup.svg:
-        soup.svg.insert_after(script)
-    else:
-        raise ValueError("No <svg> element found to attach script.")
+    svg_tag.append(script_tag)
 
     return str(soup)
 
-def create_html_page(svg_content, output_file):
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Interactive SVG</title>
-  <style>
-    #bookingForm {{
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: white;
-      padding: 20px;
-      border: 1px solid #ccc;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }}
-  </style>
-</head>
-<body>
-  {svg_content}
-  <div id="bookingForm">
-    <h2>Booking Form</h2>
-    <form>
-      <input type="hidden" id="selectedArea" name="selectedArea">
-      <label for="name">Name:</label>
-      <input type="text" id="name" name="name"><br><br>
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email"><br><br>
-      <input type="submit" value="Submit">
-    </form>
-  </div>
-</body>
-</html>
-"""
-
-    with open(output_file, 'w', encoding='utf-8') as file:
-        file.write(html_content)
+def save_svg_file(svg_content, output_file):
+    """
+    Просто сохраняет строку svg_content в файл с расширением .svg
+    """
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(svg_content)
 
 def main():
+    """
+    Шаги:
+    1. Спросить у пользователя путь к папке.
+    2. Создать там подпапку JStoSVG (если нет).
+    3. Найти все .js-файлы, извлечь из каждого все <svg> и сохранить как .svg
+    """
     input_directory = input("Введите путь к папке с JavaScript файлами: ")
-
     if not os.path.isdir(input_directory):
         print("Ошибка: Указанный путь не является директорией.")
         return
@@ -142,21 +127,26 @@ def main():
 
     for filename in js_files:
         input_js_file = os.path.join(input_directory, filename)
-        output_html_file = os.path.join(output_directory, os.path.splitext(filename)[0] + '.html')
-
         try:
             with open(input_js_file, 'r', encoding='utf-8') as file:
                 js_content = file.read()
 
-            svg_content = extract_svg_from_js(js_content)
-            interactive_svg_content = add_interactivity_to_svg(svg_content)
-            create_html_page(interactive_svg_content, output_html_file)
+            svg_blocks = extract_svgs_from_js(js_content)
 
-            print(f"HTML создан: {output_html_file}")
+            for i, svg_block in enumerate(svg_blocks, start=1):
+                interactive_svg_content = add_interactivity_to_svg(svg_block)
+
+                output_svg_file = os.path.join(
+                    output_directory,
+                    f"{os.path.splitext(filename)[0]}_{i}.svg"
+                )
+                save_svg_file(interactive_svg_content, output_svg_file)
+                print(f"SVG создан: {output_svg_file}")
 
         except FileNotFoundError:
             print(f"Файл {input_js_file} не найден.")
         except ValueError as e:
+            # Например, если не нашлось ни одного <svg> или другие ошибки.
             print(f"Ошибка в файле {filename}: {e}")
         except Exception as e:
             print(f"Произошла ошибка с файлом {filename}: {e}")

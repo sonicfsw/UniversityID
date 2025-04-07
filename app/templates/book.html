@@ -3,6 +3,7 @@
 {% block content %}
 <div class="container content-with-padding">
     <h1>Book a Room</h1>
+
     <form id="bookingForm">
         <div class="form-group">
             <label>Корпус:</label>
@@ -12,7 +13,7 @@
                     <p class="text-center">Главный корпус</p>
                 </div>
                 <div class="col-4 building-option" onclick="selectBuilding(2)">
-                    <img src="{{ url_for('static', filename='img/sbi_druzhba.png') }}" alt="Студенческий бизнес-инкубатор «Дружба»" class="img-thumbnail building-image">
+                    <img src="{{ url_for('static', filename='img/sbi_druzhba.png') }}" alt="СБИ «Дружба»" class="img-thumbnail building-image">
                     <p class="text-center">Студенческий бизнес-инкубатор «Дружба»</p>
                 </div>
                 <div class="col-4 building-option" onclick="selectBuilding(3)">
@@ -34,17 +35,19 @@
             </div>
             <input type="hidden" id="building" name="building">
         </div>
+
+        <!-- Блок выбора этажей и карты (как у вас было) -->
         <div id="floor-menu" class="form-group" style="display:none;">
             <label for="floor">Этаж:</label>
             <div class="d-flex">
-                <div class="floor-buttons" role="group" aria-label="Выбор этажа">
-                    <!-- Кнопки этажей будут генерироваться здесь -->
-                </div>
+                <div class="floor-buttons" role="group" aria-label="Выбор этажа"></div>
                 <div id="floor-map" class="ml-4" style="border: 1px solid #ccc; overflow: hidden; width: 100%; height: 600px;">
-                    <!-- Карта этажа будет загружаться сюда -->
+                    <!-- Сюда ваш JS подгружает HTML с <svg> -->
                 </div>
             </div>
         </div>
+
+        <!-- Выбор аудитории (как у вас было) -->
         <div id="room-menu" class="form-group" style="display:none;">
             <label for="room">Аудитория:</label>
             <select class="form-control" id="room" name="room">
@@ -52,6 +55,7 @@
             </select>
         </div>
     </form>
+
     <div id="booking-info" style="display:none;">
         <h2>Информация о бронировании</h2>
         <p id="selected-building"></p>
@@ -59,208 +63,248 @@
         <p id="selected-room"></p>
         <table class="table table-bordered">
             <thead>
-                <tr>
-                    <th>Время/День</th>
-                    <th>Понедельник</th>
-                    <th>Вторник</th>
-                    <th>Среда</th>
-                    <th>Четверг</th>
-                    <th>Пятница</th>
-                    <th>Суббота</th>
-                    <th>Воскресенье</th>
-                </tr>
+            <tr>
+                <th>Время/День</th>
+                <th>Понедельник</th>
+                <th>Вторник</th>
+                <th>Среда</th>
+                <th>Четверг</th>
+                <th>Пятница</th>
+                <th>Суббота</th>
+                <th>Воскресенье</th>
+            </tr>
             </thead>
             <tbody>
-                {% for i in range(1, 8) %}
-                <tr>
-                    <td>Пара {{ i }}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                {% endfor %}
+            {% for i in range(1, 8) %}
+            <tr>
+                <td>Пара {{ i }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
+</div> <!-- /content-with-padding -->
 
-<!-- Подключение библиотеки svg-pan-zoom через CDN -->
+<!-- Подключаем svg-pan-zoom (как у вас было) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/svg-pan-zoom/3.6.1/svg-pan-zoom.min.js"></script>
 
 <script>
-    const floors = {
-        1: 8,
-        2: 8,
-        3: 8,
-        4: 8,
-        5: 8,
-        6: 8
-    };
+/* ========= ВАШ существующий JavaScript для выбора корпуса/этажа/аудитории ======== */
 
-    const floorFiles = {
-        1: '/static/img/ULK_1.html',
-        2: '/static/img/ULK_2.html',
-        3: '/static/img/ULK_3.html',
-        4: '/static/img/ULK_4.html',
-        5: '/static/img/ULK_5.html',
-        6: '/static/img/ULK_6.html',
-        7: '/static/img/ULK_7.html',
-        8: '/static/img/ULK_8.html'
-    };
+const floors = {1:8, 2:8, 3:8, 4:8, 5:8, 6:8};
+const floorFiles = {
+  1: '/static/img/ULK_1.html',
+  2: '/static/img/ULK_2.html',
+  3: '/static/img/ULK_3.html',
+  4: '/static/img/ULK_4.html',
+  5: '/static/img/ULK_5.html',
+  6: '/static/img/ULK_6.html',
+  7: '/static/img/ULK_7.html',
+  8: '/static/img/ULK_8.html'
+};
 
-    let selectedBuildingName = '';
-    let selectedFloorNumber = '';
-    let selectedRoomNumber = '';
+let selectedBuildingName = '';
+let selectedFloorNumber = '';
+let selectedRoomNumber = '';
 
-    function selectBuilding(building) {
-        const buildingInput = document.getElementById('building');
-        const buildingOptions = document.querySelectorAll('.building-option');
+function selectBuilding(building) {
+    const buildingInput = document.getElementById('building');
+    const buildingOptions = document.querySelectorAll('.building-option');
 
-        if (buildingInput.value == building) {
-            buildingInput.value = '';
-            buildingOptions.forEach(option => {
-                option.classList.remove('selected', 'unselected');
-            });
-            document.getElementById('floor-menu').style.display = 'none';
-            document.querySelector('.floor-buttons').innerHTML = '';
-            document.getElementById('room-menu').style.display = 'none';
-            document.getElementById('booking-info').style.display = 'none';
-            return;
-        }
-
-        buildingInput.value = building;
+    if (buildingInput.value == building) {
+        buildingInput.value = '';
         buildingOptions.forEach(option => {
-            if (option.onclick.toString().includes(`selectBuilding(${building})`)) {
-                option.classList.add('selected');
-                option.classList.remove('unselected');
-                selectedBuildingName = option.querySelector('p').textContent;
-            } else {
-                option.classList.add('unselected');
-                option.classList.remove('selected');
-            }
+            option.classList.remove('selected','unselected');
         });
-
-        setTimeout(() => {
-            const floorMenu = document.querySelector('.floor-buttons');
-            floorMenu.innerHTML = '';
-            for (let i = 1; i <= floors[building]; i++) {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'btn floor-button';
-                button.textContent = i;
-                button.onclick = function() {
-                    selectFloor(i, this);
-                };
-                floorMenu.appendChild(button);
-            }
-            document.getElementById('floor-menu').style.display = 'block';
-        }, 1000); // Задержка 1 секунда
+        document.getElementById('floor-menu').style.display = 'none';
+        document.querySelector('.floor-buttons').innerHTML = '';
         document.getElementById('room-menu').style.display = 'none';
         document.getElementById('booking-info').style.display = 'none';
+        return;
     }
 
-    function selectFloor(floor, element) {
-        const floorMapContainer = document.getElementById('floor-map');
-        floorMapContainer.innerHTML = '';
+    buildingInput.value = building;
+    buildingOptions.forEach(option => {
+        if (option.onclick.toString().includes(`selectBuilding(${building})`)) {
+            option.classList.add('selected');
+            option.classList.remove('unselected');
+            selectedBuildingName = option.querySelector('p').textContent;
+        } else {
+            option.classList.add('unselected');
+            option.classList.remove('selected');
+        }
+    });
 
-        fetch(floorFiles[floor])
-            .then(response => response.text())
-            .then(data => {
-                floorMapContainer.innerHTML = data;
-                const svg = floorMapContainer.querySelector('svg');
+    // Пример задержки
+    setTimeout(() => {
+        const floorMenu = document.querySelector('.floor-buttons');
+        floorMenu.innerHTML = '';
+        for (let i = 1; i <= floors[building]; i++) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn floor-button';
+            button.textContent = i;
+            button.onclick = function() {
+                selectFloor(i, this);
+            };
+            floorMenu.appendChild(button);
+        }
+        document.getElementById('floor-menu').style.display = 'block';
+    }, 1000);
+
+    document.getElementById('room-menu').style.display = 'none';
+    document.getElementById('booking-info').style.display = 'none';
+}
+
+function selectFloor(floor, element) {
+    const floorMapContainer = document.getElementById('floor-map');
+    floorMapContainer.innerHTML = '';
+
+    fetch(floorFiles[floor])
+        .then(response => response.text())
+        .then(data => {
+            floorMapContainer.innerHTML = data;
+            const svg = floorMapContainer.querySelector('svg');
+            if (svg) {
                 svg.setAttribute('id', 'floor-svg');
 
-                // Инициализация svg-pan-zoom
                 svgPanZoom('#floor-svg', {
                     zoomEnabled: true,
                     controlIconsEnabled: true,
                     fit: true,
                     center: true
                 });
+            }
 
-                document.getElementById('room-menu').style.display = 'block';
-                selectedFloorNumber = floor;
+            document.getElementById('room-menu').style.display = 'block';
+            selectedFloorNumber = floor;
 
-                const floorButtons = document.querySelectorAll('.floor-button');
-                floorButtons.forEach(button => {
-                    button.classList.remove('selected-floor');
-                });
-                element.classList.add('selected-floor');
-
-                // Добавление интерактивности
-                document.querySelectorAll('#Audit g').forEach(room => {
-                    room.addEventListener('mouseover', () => handleMouseOver(room.id));
-                    room.addEventListener('mouseout', () => handleMouseOut(room.id));
-                    room.addEventListener('click', () => handleClick(room.id));
-                });
+            const floorButtons = document.querySelectorAll('.floor-button');
+            floorButtons.forEach(button => {
+                button.classList.remove('selected-floor');
             });
-    }
+            element.classList.add('selected-floor');
 
-    function handleMouseOver(id) {
-        document.getElementById(id).classList.add('highlighted');
-    }
+            // Добавляем интерактивность <g>:
+            document.querySelectorAll('#Audit g').forEach(room => {
+                room.addEventListener('mouseover', () => handleMouseOver(room.id));
+                room.addEventListener('mouseout', () => handleMouseOut(room.id));
+                room.addEventListener('click', () => handleClick(room.id));
+            });
+        });
+}
 
-    function handleMouseOut(id) {
-        document.getElementById(id).classList.remove('highlighted');
-    }
-
-    function handleClick(id) {
-        selectedRoomNumber = id;
-        document.getElementById('selected-building').textContent = 'Выбранный корпус: ' + selectedBuildingName;
-        document.getElementById('selected-floor').textContent = 'Выбранный этаж: ' + selectedFloorNumber;
-        document.getElementById('selected-room').textContent = 'Выбранная аудитория: ' + selectedRoomNumber;
-        document.getElementById('booking-info').style.display = 'block';
-    }
+function handleMouseOver(id) {
+    document.getElementById(id).classList.add('highlighted');
+}
+function handleMouseOut(id) {
+    document.getElementById(id).classList.remove('highlighted');
+}
+function handleClick(id) {
+    selectedRoomNumber = id;
+    document.getElementById('selected-building').textContent = 'Выбранный корпус: ' + selectedBuildingName;
+    document.getElementById('selected-floor').textContent = 'Выбранный этаж: ' + selectedFloorNumber;
+    document.getElementById('selected-room').textContent = 'Выбранная аудитория: ' + selectedRoomNumber;
+    document.getElementById('booking-info').style.display = 'block';
+}
 </script>
 
 <style>
-    .building-option {
-        cursor: pointer;
-    }
-    .building-option img {
-        width: 100%;
-        height: auto;
-    }
-    .building-option.selected img {
-        border: 2px solid #007bff;
-    }
-    .building-option.unselected img {
-        filter: grayscale(100%);
-    }
-    .floor-button {
-        border-radius: 50%;
-        border: 2px solid #3c388d;
-        width: 50px;
-        height: 50px;
-        line-height: 50px;
-        text-align: center;
-        padding: 0;
-        margin: 10px 0;
-        transition: background-color 0.3s, color 0.3s;
-        background-color: white;
-        color: #3c388d;
-    }
-    .floor-button.selected-floor {
-        background-color: #3c388d;
-        color: white;
-    }
-    .floor-buttons {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    .content-with-padding {
-        padding-bottom: 100px; /* Увеличенный отступ снизу */
-    }
-    .highlighted {
-        fill: yellow; /* Цвет выделения для SVG элементов */
-    }
-    .table {
-        margin-top: 20px;
-    }
+.building-option {
+    cursor: pointer;
+}
+.building-option img {
+    width: 100%;
+    height: auto;
+}
+.building-option.selected img {
+    border: 2px solid #007bff;
+}
+.building-option.unselected img {
+    filter: grayscale(100%);
+}
+.floor-button {
+    border-radius: 50%;
+    border: 2px solid #3c388d;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    padding: 0;
+    margin: 10px 0;
+    transition: background-color 0.3s, color 0.3s;
+    background-color: white;
+    color: #3c388d;
+}
+.floor-button.selected-floor {
+    background-color: #3c388d;
+    color: white;
+}
+.floor-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.content-with-padding {
+    padding-bottom: 100px;
+}
+.highlighted {
+    fill: yellow;
+}
+.table {
+    margin-top: 20px;
+}
 </style>
+
+<!-- Подключаем React, ReactDOM, Babel -->
+<script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+<!-- Оборачиваем JSX в Jinja2 raw-блок, чтобы избежать ошибки -->
+{% raw %}
+<script type="text/babel">
+const { useState } = React;
+
+function MyReactMap() {
+  const [msg, setMsg] = useState("Нажмите на круг:");
+  const handleClick = () => {
+    setMsg("SVG кликнут!");
+  };
+
+  return (
+    <div>
+      <p>{msg}</p>
+      <svg
+        width="150"
+        height="150"
+        style={{ border: "1px solid #333", cursor: "pointer" }}
+        onClick={handleClick}
+      >
+        <circle cx="75" cy="75" r="50" fill="cyan" />
+      </svg>
+    </div>
+  );
+}
+
+// Пример: Монтируем React-компонент в конец <body>, либо в любой <div>:
+document.addEventListener("DOMContentLoaded", () => {
+  // Создаём div, вставляем на страницу (пример)
+  let reactDiv = document.createElement("div");
+  reactDiv.id = "myReactExample";
+  reactDiv.style.marginTop = "30px";
+  document.body.appendChild(reactDiv);
+
+  // Рендерим компонент
+  ReactDOM.render(<MyReactMap />, reactDiv);
+});
+</script>
+{% endraw %}
 {% endblock %}

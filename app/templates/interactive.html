@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Интерактивная карта (React)</title>
+
+  <!-- Пример: если у вас есть собственный CSS (например, ULK.css) в /static/,
+       подключите так:
+  <link rel="stylesheet" href="{{ url_for('static', filename='ULK.css') }}">
+  -->
+
+  <!-- React, ReactDOM и Babel из CDN (для live-трансляции JSX -> JS в браузере) -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+<body>
+  <h1>Интерактивная SVG-карта</h1>
+
+  <!--
+    Контейнер для React:
+    В этот <div> мы с помощью ReactDOM.render() «вставим» наш компонент
+  -->
+  <div id="root"></div>
+
+  <!-- Наш React-код -->
+  <script type="text/babel">
+    // "Достаем" React.useState
+    const { useState } = React;
+
+    function BookingSVG() {
+      const [roomToBook, setRoomToBook] = useState(null);
+      const [isModalOpen, setIsModalOpen] = useState(false);
+
+      // Поля формы
+      const [userName, setUserName] = useState('');
+      const [userEmail, setUserEmail] = useState('');
+      const [bookingDate, setBookingDate] = useState('');
+
+      // Клик по комнате
+      const handleRoomClick = (roomId) => {
+        setRoomToBook(roomId);
+        setIsModalOpen(true);
+      };
+
+      // Закрыть модалку
+      const handleClose = () => {
+        setIsModalOpen(false);
+      };
+
+      // Отправка данных
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+          // Делаем POST на /api/book
+          const response = await fetch('/api/book', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              // эти поля уйдут во Flask через request.get_json()
+              room: roomToBook,
+              name: userName,
+              email: userEmail,
+              date: bookingDate,
+            }),
+          });
+          if (!response.ok) {
+            throw new Error('Ошибка запроса: ' + response.status);
+          }
+          const data = await response.json();
+          if (data.success) {
+            alert('Бронирование успешно!');
+            // Закрываем форму, сбрасываем поля
+            setIsModalOpen(false);
+            setRoomToBook(null);
+            setUserName('');
+            setUserEmail('');
+            setBookingDate('');
+          } else {
+            alert('Ошибка: ' + data.message);
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Произошла ошибка при бронировании');
+        }
+      };
+
+      return (
+        <div>
+          <h2>React-компонент: карта ULK (пример)</h2>
+          <svg viewBox="0 0 1018 907" width="600" height="auto">
+            {/* Пример аудитории 101 */}
+            <g
+              id="101"
+              style={{ cursor: 'pointer' }}
+              onClick={() => handleRoomClick('101')}
+            >
+              <path
+                d="M272.3,745.9h-80.7c-2.8,0-5,2.2-5,5v85.4c0,2.8,2.2,5,5,5h80.7
+                   c2.8,0,5-2.2,5-5v-85.4C277.3,748.1,275.1,745.9,272.3,745.9z"
+                fill="#C9C8C8"
+                stroke="#000"
+              />
+              <text x="217.5" y="800.3" fontSize="24" fill="#000">
+                101
+              </text>
+            </g>
+            {/* ... добавляйте остальные <g> для других комнат ... */}
+          </svg>
+
+          {/* Модалка (форма бронирования) */}
+          {isModalOpen && (
+            <div
+              style={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                backgroundColor: '#fff',
+                padding: '20px',
+                border: '1px solid #ccc',
+                zIndex: 9999,
+              }}
+            >
+              <h3>Бронирование аудитории {roomToBook}</h3>
+              <form onSubmit={handleSubmit}>
+                <div>
+                  <label>Имя:</label>
+                  <input
+                    type="text"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label>Email:</label>
+                  <input
+                    type="email"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label>Дата:</label>
+                  <input
+                    type="date"
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit">Забронировать</button>
+              </form>
+              <button onClick={handleClose}>Закрыть</button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Рендерим React-компонент BookingSVG в #root
+    ReactDOM.render(<BookingSVG />, document.getElementById('root'));
+  </script>
+</body>
+</html>

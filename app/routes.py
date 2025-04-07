@@ -1,5 +1,4 @@
-main
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, jsonify, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, SelectField
@@ -46,6 +45,42 @@ ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'default_admin_password')
     #def __repr__(self):
         #return f'<User {self.email}>'
 
+@app.route('/api/book', methods=['POST'])
+@login_required  # если хотите требовать логин
+def api_book():
+    data = request.get_json()
+    room = data.get('room')
+    name = data.get('name')
+    email = data.get('email')
+    date = data.get('date')
+
+    if not room or not date:
+        return jsonify({"success": False, "message": "Room и Date обязательны"}), 400
+
+    try:
+        # Пример вставки
+        # У ВАС может быть Booking(User_ID, Room, Date, Building, Floor) и т.д.
+        insert_sql = text("""
+            INSERT INTO Booking (User_ID, Room, [Date], [Name], [Email])
+            VALUES (:user_id, :room, :date, :name, :email)
+        """)
+
+        db.session.execute(insert_sql, {
+            'user_id': current_user.User_ID,  # берем из flask_login
+            'room': room,
+            'date': date,
+            'name': name,
+            'email': email
+        })
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Бронирование успешно!"}), 200
+
+    except Exception as e:
+        print("Ошибка при бронировании:", e)
+        return jsonify({"success": False, "message": "Ошибка БД"}), 500
+
+
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -62,6 +97,10 @@ class RegisterForm(FlaskForm):
 class AdminPasswordForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Sign In')
+
+@app.route('/interactive')
+def interactive():
+    return render_template('interactive.html')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -195,20 +234,6 @@ def book():
 def it_academy():
     return render_template('output.html')
 
-if __name__ == '__main__':
-    #with app.app_context():
-       # db.create_all()
-    app.run(debug=True, port=5000)
-=======
-from flask import render_template, redirect, url_for, flash, request
-from flask_login import login_user, login_required, logout_user, current_user
-from sqlalchemy.sql import text
-from werkzeug.security import generate_password_hash, check_password_hash
-
-from app import db
-from app.models import User
-from app.forms import RegisterForm, LoginForm
-
 def register_routes(app):
 
     @app.route('/')
@@ -274,4 +299,16 @@ def register_routes(app):
         except Exception as e:
             flash(f'Error loading bookings: {e}', 'danger')
             return render_template('error.html', message="Ошибка загрузки данных.")
-   dev
+
+if __name__ == '__main__':
+    #with app.app_context():
+       # db.create_all()
+    app.run(debug=True, port=5000)
+from flask import render_template, redirect, url_for, flash, request
+from flask_login import login_user, login_required, logout_user, current_user
+from sqlalchemy.sql import text
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from app import db
+from app.models import User
+from app.forms import RegisterForm, LoginForm
